@@ -1,0 +1,9 @@
+torch
+transformers
+datasets
+accelerate
+huggingface_hub
+python-dotenv
+numpy
+tqdm
+matplotlib
