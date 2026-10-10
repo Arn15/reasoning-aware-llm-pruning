@@ -1,0 +1,85 @@
+{
+  "model": "meta-llama/Llama-3.2-1B-Instruct",
+  "method": "wanda_sa",
+  "pattern": "unstructured",
+  "target_sparsity": 0.6,
+  "delta_selection": [
+    {
+      "delta": 0.0,
+      "heldout_reasoning_nll": 2.3889205295520646
+    },
+    {
+      "delta": 0.05,
+      "heldout_reasoning_nll": 2.3645921156804146
+    },
+    {
+      "delta": 0.1,
+      "heldout_reasoning_nll": 2.340975192031463
+    },
+    {
+      "delta": 0.15,
+      "heldout_reasoning_nll": 2.3471364242702966
+    }
+  ],
+  "delta": 0.1,
+  "score": "reasoning",
+  "layer_sparsity": [
+    0.5,
+    0.513333,
+    0.646667,
+    0.606667,
+    0.54,
+    0.526667,
+    0.686667,
+    0.673333,
+    0.62,
+    0.58,
+    0.633333,
+    0.593333,
+    0.7,
+    0.66,
+    0.566667,
+    0.553333
+  ],
+  "measured_sparsity": 0.6000018941945043,
+  "measured_layer_sparsity": [
+    0.5,
+    0.5132172683189655,
+    0.6465180495689655,
+    0.606512661637931,
+    0.5400390625,
+    0.526788119612069,
+    0.6865571120689655,
+    0.67333984375,
+    0.6200835129310345,
+    0.5800444504310345,
+    0.63330078125,
+    0.5932953933189655,
+    0.700127963362069,
+    0.6601225754310345,
+    0.566827182112069,
+    0.5532563308189655
+  ],
+  "wikitext2_ppl": 102.71666621000801,
+  "benchmarks": {
+    "gsm8k": {
+      "score": 0.008,
+      "stderr": 0.003987957825156951,
+      "n": 500,
+      "task": "gsm8k_cot_llama",
+      "metric": "exact_match,strict-match",
+      "flexible-extract": {
+        "score": 0.018,
+        "stderr": 0.005951709476392716
+      }
+    },
+    "arc_challenge": {
+      "score": 0.15784982935153583,
+      "stderr": 0.010654630211340825,
+      "n": 1172,
+      "task": "arc_challenge_chat",
+      "metric": "exact_match,remove_whitespace"
+    }
+  },
+  "minutes": 35.5
+}

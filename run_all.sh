@@ -12,4 +12,11 @@ for s in 0.2 0.4 0.5 0.6; do run --method wanda --sparsity "$s"; done
 run --method wanda --pattern 2:4
 for s in 0.5 0.6; do run --method wanda_sa --sparsity "$s" --delta auto --score reasoning; done
 run --method wanda_sa --sparsity 0.5 --delta auto --score specific
+# follow-up: the 30-40% range, where the dense model's reasoning is only partly lost
+run --method wanda --sparsity 0.3
+for s in 0.3 0.4; do
+  run --method wanda_sa --sparsity "$s" --delta auto --score reasoning
+  run --method wanda_sa --sparsity "$s" --delta auto --score specific
+done
+run --method wanda_sa --sparsity 0.6 --delta auto --score specific
 python -m src.summarize

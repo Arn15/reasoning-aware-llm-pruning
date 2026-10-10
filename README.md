@@ -2,7 +2,7 @@
 
 One-shot pruning of Llama-3.2-1B-Instruct. Measures how much each transformer layer matters for multi-step reasoning versus general language modeling, then uses that to decide **where** to prune: reasoning-critical layers are pruned less, others more, at the same overall sparsity. Compared against magnitude pruning and Wanda.
 
-> **Status:** pipeline rebuilt with corrected evaluation; results pending the first full run. Next: safety-behavior evaluation under pruning.
+> **Status:** first full results in (below). In progress: 30–40% sparsity runs. Next: safety-behavior evaluation under pruning.
 
 ## Background
 Originally a team project for NC State's Deep Learning Beyond Accuracy course (Spring 2026). Team: Jai Pavan Ramani, Shivang Nitinkumar Patel, Arnav Yennam.
@@ -48,8 +48,31 @@ Single runs: `python -m src.run --method wanda --sparsity 0.5`. On Colab, use `n
 
 Note: unstructured sparsity reduces parameters but not latency on standard GPUs; 2:4 sparsity can be accelerated on Ampere-or-newer GPUs (not the T4 used here), so only its quality is reported.
 
-## Results
-_Pending the first full run._
+## Results (Llama-3.2-1B-Instruct)
+GSM8K: 8-shot CoT, first 500 test questions (same subset for every method). ARC-Challenge: full test set, 0-shot chat format. Scores in %, ± = 95% CI. Full table: [`results/results.md`](results/results.md).
+
+| Method | Sparsity | GSM8K | ARC-C | WikiText-2 PPL |
+|---|---|---|---|---|
+| Dense | 0% | 46.0 ± 4.4 | 56.1 ± 2.8 | 13.16 |
+| Wanda | 20% | 37.6 ± 4.3 | 56.1 ± 2.8 | 13.91 |
+| Wanda | 40% | 16.2 ± 3.2 | 41.4 ± 2.8 | 18.80 |
+| Magnitude | 50% | 0.0 | 0.5 ± 0.4 | 1539.88 |
+| Wanda | 50% | 1.6 ± 1.1 | 26.7 ± 2.5 | 33.21 |
+| + allocation (reasoning), δ=0.05 | 50% | 1.8 ± 1.2 | **28.8 ± 2.6** | 32.41 |
+| + allocation (reasoning-specific), δ=0.10 | 50% | **3.4 ± 1.6** | 27.1 ± 2.5 | **31.93** |
+| Wanda | 60% | 1.0 ± 0.9 | 1.7 ± 0.7 | 108.88 |
+| + allocation (reasoning), δ=0.10 | 60% | 0.8 ± 0.8 | **15.8 ± 2.1** | **102.72** |
+| Wanda 2:4 | 50% | 0.8 ± 0.8 | 6.7 ± 1.4 | 107.82 |
+
+![Sparsity curves](results/sparsity_curves.png)
+![Layer sensitivity](results/sensitivity_Llama-3.2-1B-Instruct.png)
+
+### Findings
+- **Perplexity hides reasoning collapse.** At 40% sparsity, perplexity rises 43% (13.2 → 18.8) while GSM8K accuracy falls 65% (46.0 → 16.2). At 50%, a perplexity of 33 looks usable, but GSM8K is near zero. Multi-step reasoning degrades well before language-modeling quality or ARC-style knowledge (ARC is unchanged at 20%).
+- **Magnitude pruning breaks small Llama-3 models** (perplexity 1540 at 50%), while Wanda keeps them coherent, which confirms why activation-aware pruning matters.
+- **Layer sensitivity is concentrated in the first two layers** for both reasoning and language modeling. Among the remaining layers, layers 4–5 matter more for reasoning than for language modeling, and the last layer (15) matters mostly for language modeling.
+- **Sensitivity-aware allocation helps most where uniform Wanda collapses.** At 60% it recovers ARC from 1.7% to 15.8% and lowers perplexity. At 50%, the reasoning-specific score roughly doubles GSM8K (1.6 → 3.4) and gives the best perplexity, but absolute GSM8K accuracy is near the floor for every method, so these gains don't amount to preserved reasoning.
+- **Caveat:** ARC is scored by generating an answer letter, so scores below 25% (chance) mean the model stopped producing a valid answer, not that it guessed worse than random.
 
 ## Layout
 ```
@@ -68,5 +91,6 @@ docs/                course abstract and presentation
 - [x] Corrected Wanda (per-row, sequential, C4 calibration) and magnitude / 2:4 baselines
 - [x] Standardized evaluation with confidence intervals; leak-free sensitivity
 - [x] Sensitivity-aware per-layer sparsity with held-out δ selection
-- [ ] Full results on Llama-3.2-1B-Instruct
+- [x] Full results on Llama-3.2-1B-Instruct (20–60%)
+- [ ] 30–40% sparsity for the sensitivity-aware method (where reasoning is only partly lost)
 - [ ] Safety: refusal rate on harmful-prompt benchmarks across sparsity levels

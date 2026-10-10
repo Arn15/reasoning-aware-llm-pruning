@@ -26,7 +26,7 @@ def main():
     if not runs:
         raise SystemExit("no runs found in results/runs/")
     order = {"dense": 0, "magnitude": 1, "wanda": 2, "wanda_sa": 3}
-    runs.sort(key=lambda r: (r["pattern"] not in ("unstructured", "none"), r["target_sparsity"], order[r["method"]]))
+    runs.sort(key=lambda r: (r["pattern"] not in ("unstructured", "none"), r["target_sparsity"], order[r["method"]], r.get("score", "")))
 
     model = runs[0]["model"]
     lines = [f"# Pruning results — {model}", "",
@@ -39,29 +39,35 @@ def main():
         b = r.get("benchmarks", {})
         note = ""
         if r["method"] == "wanda_sa":
-            note = f"δ={r['delta']:.2f} ({r['score']})"
+            note = f"δ={r['delta']:.2f} ({'reasoning-specific' if r['score'] == 'specific' else 'reasoning'})"
         lines.append(f"| {LABEL[r['method']]} | {'–' if r['pattern'] == 'none' else r['pattern']} | {r['measured_sparsity']:.3f} | "
                      f"{fmt(b.get('gsm8k'))} | {fmt((b.get('gsm8k') or {}).get('flexible-extract'))} | {fmt(b.get('arc_challenge'))} | {r['wikitext2_ppl']:.2f} | {note} |")
     (ROOT / "results" / "results.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 
-    # sparsity curves (unstructured only)
+    # sparsity curves (unstructured only); each series shows only its measured points
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     dense = [r for r in runs if r["method"] == "dense"]
-    for method in ("magnitude", "wanda", "wanda_sa"):
-        pts = [r for r in runs if r["method"] == method and r["pattern"] == "unstructured"] + dense
-        pts.sort(key=lambda r: r["target_sparsity"])
-        if len(pts) < 2:
+    series = [("magnitude", None, "Magnitude"), ("wanda", None, "Wanda"),
+              ("wanda_sa", "reasoning", "Wanda + allocation (reasoning)"),
+              ("wanda_sa", "specific", "Wanda + allocation (reasoning-specific)")]
+    for method, score, label in series:
+        pts = [r for r in runs if r["method"] == method and r["pattern"] == "unstructured"
+               and (score is None or r.get("score") == score)]
+        if not pts:
             continue
+        if method == "wanda":
+            pts += dense          # Wanda curve starts from the dense model
+        pts.sort(key=lambda r: r["target_sparsity"])
         xs = [r["target_sparsity"] for r in pts]
         for ax, key in zip(axes, ("gsm8k", "arc_challenge", "ppl")):
             ys = [r["wikitext2_ppl"] if key == "ppl" else r.get("benchmarks", {}).get(key, {}).get("score", float("nan")) * 100
                   for r in pts]
-            ax.plot(xs, ys, marker="o", label=LABEL[method])
+            ax.plot(xs, ys, marker="o", label=label, linestyle="-" if len(pts) > 1 else "none")
     for ax, title in zip(axes, ("GSM8K accuracy (%)", "ARC-Challenge accuracy (%)", "WikiText-2 perplexity (log)")):
         ax.set_title(title); ax.set_xlabel("sparsity"); ax.grid(alpha=0.3)
     axes[2].set_yscale("log")
-    axes[0].legend()
+    axes[0].legend(fontsize=8)
     fig.tight_layout()
     fig.savefig(ROOT / "results" / "sparsity_curves.png", dpi=150)
 
