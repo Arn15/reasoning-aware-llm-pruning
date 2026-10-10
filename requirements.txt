@@ -1,9 +1,9 @@
 torch
-transformers
+transformers==5.19.0
+lm_eval==0.4.13
 datasets
 accelerate
 huggingface_hub
-python-dotenv
-numpy
-tqdm
 matplotlib
+tqdm
+pytest
