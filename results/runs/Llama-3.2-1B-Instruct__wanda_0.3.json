@@ -1,0 +1,47 @@
+{
+  "model": "meta-llama/Llama-3.2-1B-Instruct",
+  "method": "wanda",
+  "pattern": "unstructured",
+  "target_sparsity": 0.3,
+  "measured_sparsity": 0.29987203663793105,
+  "measured_layer_sparsity": [
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105,
+    0.29987203663793105
+  ],
+  "wikitext2_ppl": 15.177343592898978,
+  "benchmarks": {
+    "gsm8k": {
+      "score": 0.304,
+      "stderr": 0.020591649571224932,
+      "n": 500,
+      "task": "gsm8k_cot_llama",
+      "metric": "exact_match,strict-match",
+      "flexible-extract": {
+        "score": 0.304,
+        "stderr": 0.020591649571224932
+      }
+    },
+    "arc_challenge": {
+      "score": 0.5051194539249146,
+      "stderr": 0.014610624890309157,
+      "n": 1172,
+      "task": "arc_challenge_chat",
+      "metric": "exact_match,remove_whitespace"
+    }
+  },
+  "minutes": 13.2
+}

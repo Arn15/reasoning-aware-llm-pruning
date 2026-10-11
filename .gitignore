@@ -10,3 +10,4 @@ __pycache__/
 *.tgz
 *.zip
 pruning_update/
+results 2/
